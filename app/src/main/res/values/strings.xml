@@ -4,5 +4,7 @@
 
     <string name="toast_requires_permission_format">Requires permission %s</string>
     <string name="info_view_default">Map</string>
-    <string name="latlng_format">latitude = %f, longitude = %f</string>
+    <string name="latlng_format">latitude = %f, \nlongitude = %f</string>
+    <string name="update">update</string>
+    <string name="google_maps_api_key">AIzaSyAsNa4M6HkhweRrrOpuGOcFFXFlCr3aicA</string>
 </resources>
