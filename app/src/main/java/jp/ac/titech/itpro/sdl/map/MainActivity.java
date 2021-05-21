@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +25,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     private final static String TAG = MainActivity.class.getSimpleName();
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap map;
 
     private FusedLocationProviderClient locationClient;
-    private LocationRequest request;
+    //private LocationRequest request;
     private LocationCallback callback;
 
     @Override
@@ -47,6 +51,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         infoView = findViewById(R.id.info_view);
+        Button update = findViewById(R.id.button_update);
+        update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startLocationUpdate(true);
+            }
+        });
         SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
         if (fragment != null) {
             Log.d(TAG, "onCreate: getMapAsync");
@@ -55,10 +66,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         locationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        request = LocationRequest.create();
+        /*request = LocationRequest.create();
         request.setInterval(10000L);
         request.setFastestInterval(5000L);
-        request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);*/
 
         callback = new LocationCallback() {
             @Override
@@ -66,11 +77,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.d(TAG, "onLocationResult");
                 Location location = locationResult.getLastLocation();
                 LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
+                Log.d(TAG, getString(R.string.latlng_format, ll.latitude, ll.longitude));
                 infoView.setText(getString(R.string.latlng_format, ll.latitude, ll.longitude));
                 if (map == null) {
                     Log.d(TAG, "onLocationResult: map == null");
                     return;
                 }
+                map.addMarker(new MarkerOptions().position(new LatLng(ll.latitude, ll.longitude)));
                 map.animateCamera(CameraUpdateFactory.newLatLng(ll));
             }
         };
@@ -122,7 +135,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return;
             }
         }
-        locationClient.requestLocationUpdates(request, callback, null);
+        //locationClient.requestLocationUpdates(request, callback, null);
+        locationClient.getLastLocation().addOnSuccessListener(this,
+                new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if(location!=null) {
+                            LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
+                            Log.d(TAG, getString(R.string.latlng_format, ll.latitude, ll.longitude));
+                            infoView.setText(getString(R.string.latlng_format, ll.latitude, ll.longitude));
+                            if (map == null) {
+                                Log.d(TAG, "onLocationResult: map == null");
+                                return;
+                            }
+                            map.addMarker(new MarkerOptions().position(new LatLng(ll.latitude, ll.longitude)));
+                            map.animateCamera(CameraUpdateFactory.newLatLng(ll));
+                        }
+                    }
+                });
     }
 
     @Override
